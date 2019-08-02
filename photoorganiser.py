@@ -9,7 +9,6 @@ import tkinter as tk
 from PIL import Image, ImageTk
 from tkinter.ttk import Frame, Button, Style
 
-
 def makeFileList(mypath, extension = None):
 	"""
 	Makes list of files with certain file extension
@@ -74,8 +73,18 @@ class ImageWindow():
 		self.panel1 = tk.Label(self.root)
 		self.panel1.pack(side = tk.TOP, fill = tk.BOTH, expand = tk.YES)
 
-		#iterator for the images
-		self.image_iterator = 0
+		#set the iterator by asking at what image you want to start. Useful when
+		#the program crashes at a high image count and you need to restart sorting
+		startpoint_answer = input(f'There are {len(self.images_fnames) + 1} images to be sorted. Where do you want to start? ')
+
+		try:
+			self.image_iterator = int(startpoint_answer) - 1
+		except ValueError:
+			sys.exit('Aborting: please give an integer input.')
+
+
+		#count the number of images moved
+		self.n_images_moved = 0
 
 		self.root.after(1, self.nextImage)
 		self.root.mainloop()
@@ -115,16 +124,27 @@ class ImageWindow():
 		self.display = image
 
 		#ask for input
-		move_answer = input(f'[{self.image_iterator+1}/{len(self.images_fnames) + 1}] Move the image? (y/n/exit) ')
+		move_answer = input(f'[{self.image_iterator+1}/{len(self.images_fnames) + 1}/{self.n_images_moved}] Move the image? (y/n/exit) ')
+
+		# print(f'[{self.image_iterator+1}/{len(self.images_fnames) + 1}] Move the image? (y/n/exit) ', end = '')
+		# move_answer = sys.stdin.read(1)
 
 		#move file if desired
 		if move_answer.lower() == 'y':
 			shutil.move(self.images_fnames[self.image_iterator], self.moveto_path)
+			self.image_iterator += 1
+			self.n_images_moved += 1
 		elif move_answer.lower() == 'exit':
 			sys.exit('Exiting...')
+		elif move_answer == '\x1b[D':
+			#press the left arrow
+			self.image_iterator -= 1
+		else:
+			#press the right arrow, input 'n' or no input (is a quick way forward)
+			self.image_iterator += 1
 
 
-		self.image_iterator += 1
+
 
 		if self.image_iterator > len(self.images_fnames) - 1:
 			sys.exit('Final image reached, ending program...')
