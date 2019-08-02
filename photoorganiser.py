@@ -40,11 +40,12 @@ def checkpathsyntax(path):
 
 class ImageWindow():
 	"""
-	Code based on: https://raspberrypi.stackexchange.com/questions/18261/how-do-i-display-an-image-file-png-in-a-simple-window
+	Tkinter image display and update code based on:
+	https://raspberrypi.stackexchange.com/questions/18261/how-do-i-display-an-image-file-png-in-a-simple-window
 	"""
 	def __init__(self, images_fnames, moveto_path):
 		#### fixed parameters
-		#fix the frame size
+		#set the frame size (can be adjusted later)
 		self.w = 960
 		self.h = 1080
 
@@ -98,6 +99,14 @@ class ImageWindow():
 		"""
 		Put in the next image and ask whether it should be moved
 		"""
+
+		#update the width and height of the window if it is changed from the default
+		#this allows the user to change the window shape and have the images
+		#adjust after an update
+		if self.root.winfo_height() is not 1 and self.root.winfo_width() is not 1:
+			self.w = self.root.winfo_width()
+			self.h = self.root.winfo_height()
+
 		#load image
 		image = self.loadImage(self.images_fnames[self.image_iterator])
 
@@ -106,9 +115,9 @@ class ImageWindow():
 		self.display = image
 
 		#ask for input
-		move_answer = input(f'[{self.image_iterator+1}/{len(self.images_fnames) + 1}] Move the image? (y/n/exit)')
+		move_answer = input(f'[{self.image_iterator+1}/{len(self.images_fnames) + 1}] Move the image? (y/n/exit) ')
 
-		#move if desired
+		#move file if desired
 		if move_answer.lower() == 'y':
 			shutil.move(self.images_fnames[self.image_iterator], self.moveto_path)
 		elif move_answer.lower() == 'exit':
