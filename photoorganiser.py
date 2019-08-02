@@ -2,6 +2,7 @@ import numpy as np
 from tqdm import tqdm
 #for moving files (the images)
 import shutil
+import sys
 
 import tkinter as tk
 from PIL import Image, ImageTk
@@ -43,52 +44,76 @@ class ImageWindow():
 	def __init__(self, images_fnames, moveto_path):
 		#### fixed parameters
 		#fix the frame size
-		w = 960
-		h = 1080
+		self.w = 960
+		self.h = 1080
+
+		# position coordinates of root 'upper left corner'
+		x = 0
+		y = 0
 
 
 		#set up the frame
 		self.root = tk.Tk()
 		self.root.title('My Pictures')
 
+		# make the root window the alotted size
+		self.root.geometry("%dx%d+%d+%d" % (self.w, self.h, x, y))
+
 		#obtain filenames and move path
 		self.images_fnames = images_fnames
 		self.moveto_path = moveto_path
 
+		self.image1 = self.loadImage(images_fnames[0])
+
+		self.image2 = ImageTk.PhotoImage(Image.open(images_fnames[1]))
+
+		# make the panel for displaying the image
+		# root has no image argument, so use a label as a panel
+		self.panel1 = tk.Label(self.root)
+		self.panel1.pack(side = tk.TOP, fill = tk.BOTH, expand = tk.YES)
+
+		#iterator for the images
+		self.image_iterator = 0
+
+		self.root.after(10, self.nextImage)
+		self.root.mainloop()
+
+	def loadImage(self, fname):
+		"""
+		Load a new image and put it in the frame
+		"""
 		# load the image
-		img = Image.open(images_fnames[0])
+		img = Image.open(fname)
 		#determine size
 		imgwidth, imgheight = img.size
 		#determine resize ratio
-		ratio = min(w/imgwidth, h/imgheight)
+		ratio = min(self.w/imgwidth, self.h/imgheight)
 		#resize it
 		img = img.resize((int(imgwidth * ratio), int(imgheight * ratio)))
 		#covert it to a Tkinter image object
-		self.image1 = ImageTk.PhotoImage(img)
-		
-		self.image2 = ImageTk.PhotoImage(Image.open(images_fnames[1]))
+		return ImageTk.PhotoImage(img)
 
+	def nextImage(self):
+		"""
+		Put in the next image and ask whether it should be moved
+		"""
+		#load image
+		image = self.loadImage(self.images_fnames[self.image_iterator])
 
-		# get the image size
-		# w = self.image1.width()
-		# h = self.image1.height()
+		#display image
+		self.panel1.configure(image = image)
+		self.display = image
 
+		#ask for input
+		move_answer = input('Move the image? ')
 
+		self.image_iterator += 1
 
-		# position coordinates of root 'upper left corner'
-		x = 0
-		y = 0
+		if self.image_iterator > len(self.images_fnames) - 1:
+			sys.exit('Final image reached, ending program...')
 
-		# make the root window the alotted size
-		self.root.geometry("%dx%d+%d+%d" % (w, h, x, y))
+		self.root.after(10, self.nextImage)
 
-		# root has no image argument, so use a label as a panel
-		self.panel1 = tk.Label(self.root, image = self.image1)
-		self.display = self.image1
-		self.panel1.pack(side = tk.TOP, fill = tk.BOTH, expand = tk.YES)
-
-		self.root.after(3000, self.update_image)
-		self.root.mainloop()
 
 	def update_image(self):
 		if self.display == self.image1:
