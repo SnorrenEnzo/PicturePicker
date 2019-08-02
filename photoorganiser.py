@@ -1,8 +1,9 @@
 import numpy as np
-from tqdm import tqdm
+import sys
+import argparse
+
 #for moving files (the images)
 import shutil
-import sys
 
 import tkinter as tk
 from PIL import Image, ImageTk
@@ -75,7 +76,7 @@ class ImageWindow():
 		#iterator for the images
 		self.image_iterator = 0
 
-		self.root.after(10, self.nextImage)
+		self.root.after(1, self.nextImage)
 		self.root.mainloop()
 
 	def loadImage(self, fname):
@@ -105,14 +106,22 @@ class ImageWindow():
 		self.display = image
 
 		#ask for input
-		move_answer = input('Move the image? ')
+		move_answer = input(f'[{self.image_iterator+1}/{len(self.images_fnames) + 1}] Move the image? (y/n/exit)')
+
+		#move if desired
+		if move_answer.lower() == 'y':
+			shutil.move(self.images_fnames[self.image_iterator], self.moveto_path)
+		elif move_answer.lower() == 'exit':
+			sys.exit('Exiting...')
+
 
 		self.image_iterator += 1
 
 		if self.image_iterator > len(self.images_fnames) - 1:
 			sys.exit('Final image reached, ending program...')
 
-		self.root.after(10, self.nextImage)
+		#loop
+		self.root.after(1, self.nextImage)
 
 
 	def update_image(self):
@@ -152,27 +161,8 @@ def main(devmode):
 	#open the image window
 	img_window = ImageWindow(images_fnames, moveto_path)
 
-	'''
-	#loop over the images
-	for fname in tqdm(images_fnames):
+parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser.add_argument('--devmode', help = 'Do not ask for file paths but use default values. Used for quick code testing.', default = 'false')
+args = parser.parse_args()
 
-		#open image
-		# im = Image.open(fname)
-
-		#show image
-		# im.show()
-
-		subprocess.run(['', fname, '&'])
-
-		move_answer = input('Move the image? ')
-
-
-		#move the file
-		#shutil.move()
-	'''
-
-
-#this parameter causes user input to be ignored for quicker code testing
-devmode = True
-
-main(devmode)
+main(args.devmode.lower() == 'true')
