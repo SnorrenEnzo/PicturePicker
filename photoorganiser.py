@@ -123,17 +123,6 @@ class ImageWindow():
 		#loop
 		self.root.after(1, self.nextImage)
 
-
-	def update_image(self):
-		if self.display == self.image1:
-			self.panel1.configure(image = self.image2)
-			self.display = self.image2
-		else:
-			self.panel1.configure(image = self.image1)
-			self.display = self.image1
-		self.root.after(3000, self.update_image)	   # Set to call again in 30 seconds
-
-
 def main(devmode):
 	"""
 	This script allows one to easily sort images manually. The path of a folder
