@@ -69,12 +69,18 @@ def filterFileExtensions(fname_list):
 
 	filtered_fnames = []
 
+	not_allowed_counter = 0
+
 	for fname in fname_list:
 		#extract the fiel extension without the dot
 		extension = fname[::-1].split('.', 1)[0][::-1]
 
 		if extension in allowed_extensions:
 			filtered_fnames.append(fname)
+		else:
+			not_allowed_counter += 1
+
+	print(f'{not_allowed_counter} files not selected due to incompatible file extension.')
 
 	return filtered_fnames
 
@@ -167,8 +173,10 @@ class ImageWindow():
 		self.panel1.configure(image = image)
 		self.display = image
 
+		display_fname = self.images_fnames[self.image_iterator][::-1].split('/', 1)[0][::-1]
+
 		#ask for input
-		move_answer = input(f'[{self.image_iterator+1}/{len(self.images_fnames) + 1}/{self.n_images_moved}] Move the image? (y/n/exit) ')
+		move_answer = input(f'{display_fname} [{self.image_iterator+1}/{len(self.images_fnames) + 1}/{self.n_images_moved}] Move the image? (y/n/exit) ')
 
 		# print(f'[{self.image_iterator+1}/{len(self.images_fnames) + 1}] Move the image? (y/n/exit) ', end = '')
 		# move_answer = sys.stdin.read(1)
