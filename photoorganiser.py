@@ -75,7 +75,7 @@ class ImageWindow():
 
 		#set the iterator by asking at what image you want to start. Useful when
 		#the program crashes at a high image count and you need to restart sorting
-		startpoint_answer = input(f'There are {len(self.images_fnames) + 1} images to be sorted. Where do you want to start? ')
+		startpoint_answer = input(f'There are {len(self.images_fnames) + 1} images to be sorted. Where do you want to start (starting from 1)? ')
 
 		try:
 			self.image_iterator = int(startpoint_answer) - 1
@@ -85,6 +85,8 @@ class ImageWindow():
 
 		#count the number of images moved
 		self.n_images_moved = 0
+		#also note which images have already been moved
+		self.moved_images = np.zeros(len(self.images_fnames))
 
 		self.root.after(1, self.nextImage)
 		self.root.mainloop()
@@ -132,19 +134,23 @@ class ImageWindow():
 		#move file if desired
 		if move_answer.lower() == 'y':
 			shutil.move(self.images_fnames[self.image_iterator], self.moveto_path)
-			self.image_iterator += 1
 			self.n_images_moved += 1
+			self.moved_images[self.image_iterator] = 1
+
+			self.image_iterator += 1
 		elif move_answer.lower() == 'exit':
 			sys.exit('Exiting...')
 		elif move_answer == '\x1b[D':
 			#press the left arrow
-			self.image_iterator -= 1
+
+			#move one back if that image wasn't moved already
+			if not self.moved_images[self.image_iterator - 1]:
+				self.image_iterator -= 1
+			else:
+				print('Image already moved.')
 		else:
 			#press the right arrow, input 'n' or no input (is a quick way forward)
 			self.image_iterator += 1
-
-
-
 
 		if self.image_iterator > len(self.images_fnames) - 1:
 			sys.exit('Final image reached, ending program...')
