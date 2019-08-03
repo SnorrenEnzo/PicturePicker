@@ -1,5 +1,6 @@
 import numpy as np
 import sys
+import os
 import argparse
 
 #for moving files (the images)
@@ -36,6 +37,47 @@ def checkpathsyntax(path):
 		path += '/'
 
 	return path
+
+def checkFolders(folders):
+	"""
+	Check whether folders are present and creates them if necessary
+	"""
+	for folder in folders:
+		if not os.path.exists(folder):
+			print(f'Directory {folder} does not exist; creating it now...')
+			os.makedirs(folder)
+
+def filterFileExtensions(fname_list):
+	"""
+	Filter a list of filenames to only include:
+		.bmp
+		.jpg
+		.JPG
+		.jpeg
+		.gif
+		.png
+	"""
+
+	allowed_extensions = [
+		'bmp',
+		'jpg',
+		'JPG',
+		'jpeg',
+		'gif',
+		'png'
+		]
+
+	filtered_fnames = []
+
+	for fname in fname_list:
+		#extract the fiel extension without the dot
+		extension = fname[::-1].split('.', 1)[0][::-1]
+
+		if extension in allowed_extensions:
+			filtered_fnames.append(fname)
+
+	return filtered_fnames
+
 
 class ImageWindow():
 	"""
@@ -179,8 +221,14 @@ def main(devmode):
 	images_path = checkpathsyntax(images_path)
 	moveto_path = checkpathsyntax(moveto_path)
 
+	#check if the moveto path actually exists and if not, make it
+	checkFolders([moveto_path])
+
 	#obtain the filenames of the images.
 	images_fnames = makeFileList(images_path)
+
+	#filter the file extensions
+	images_fnames = filterFileExtensions(images_fnames)
 
 	#open the image window
 	img_window = ImageWindow(images_fnames, moveto_path)
