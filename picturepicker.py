@@ -139,7 +139,7 @@ class ImageWindow():
 		#also note which images have already been moved
 		self.moved_images = np.zeros(len(self.images_fnames))
 
-		self.rotate = None
+		self.rotate = 'h'
 
 		#image buffer list
 		self.img_buffer = []
@@ -219,7 +219,7 @@ class ImageWindow():
 
 		#load image
 		image = self.getImage(rotate = self.rotate)
-		self.rotate = None
+		# self.rotate = None
 
 		#display image
 		self.panel1.configure(image = image)
@@ -253,8 +253,8 @@ class ImageWindow():
 				self.image_iterator -= 1
 			else:
 				print('Image already moved.')
-		elif move_answer.lower() == 'r' or move_answer.lower() == 'l':
-			#rotate image
+		elif move_answer.lower() in ['l', 'r', 'h']:
+			#rotate image (or set rotation back to zero)
 			self.rotate = move_answer.lower()
 		else:
 			#press the right arrow, input 'n' or no input (is a quick way forward)
