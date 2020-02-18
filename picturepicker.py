@@ -139,6 +139,8 @@ class ImageWindow():
 		#also note which images have already been moved
 		self.moved_images = np.zeros(len(self.images_fnames))
 
+		self.rotate = None
+
 		#image buffer list
 		self.img_buffer = []
 		#the desired buffer length
@@ -185,7 +187,7 @@ class ImageWindow():
 				else:
 					self.stop_buffer_loading = True
 
-	def getImage(self):
+	def getImage(self, rotate = None):
 		"""
 		Get an image from the image buffer
 		"""
@@ -195,8 +197,10 @@ class ImageWindow():
 
 		img = self.img_buffer[0]
 
-		#remove first from buffer
-		del self.img_buffer[0]
+		if rotate == 'l':
+			img = img.rotate(90)
+		elif rotate == 'r':
+			img = img.rotate(-90)
 
 		return ImageTk.PhotoImage(img)
 
@@ -214,7 +218,8 @@ class ImageWindow():
 			self.h = self.root.winfo_height()
 
 		#load image
-		image = self.getImage()
+		image = self.getImage(rotate = self.rotate)
+		self.rotate = None
 
 		#display image
 		self.panel1.configure(image = image)
@@ -235,6 +240,9 @@ class ImageWindow():
 			self.moved_images[self.image_iterator] = 1
 
 			self.image_iterator += 1
+
+			#remove first from buffer
+			del self.img_buffer[0]
 		elif move_answer.lower() == 'exit':
 			sys.exit('Exiting...')
 		elif move_answer == '\x1b[D':
@@ -245,9 +253,15 @@ class ImageWindow():
 				self.image_iterator -= 1
 			else:
 				print('Image already moved.')
+		elif move_answer.lower() == 'r' or move_answer.lower() == 'l':
+			#rotate image
+			self.rotate = move_answer.lower()
 		else:
 			#press the right arrow, input 'n' or no input (is a quick way forward)
 			self.image_iterator += 1
+
+			#remove first from buffer
+			del self.img_buffer[0]
 
 		if self.image_iterator > len(self.images_fnames) - 1:
 			self.stop_buffer_loading = True
