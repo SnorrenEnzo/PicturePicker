@@ -6,6 +6,9 @@ import argparse
 #for moving files (the images)
 import shutil
 
+import threading
+import time
+
 import tkinter as tk
 from PIL import Image, ImageTk
 from tkinter.ttk import Frame, Button, Style
@@ -72,7 +75,7 @@ def filterFileExtensions(fname_list):
 	not_allowed_counter = 0
 
 	for fname in fname_list:
-		#extract the fiel extension without the dot
+		#extract the file extension without the dot
 		extension = fname[::-1].split('.', 1)[0][::-1]
 
 		if extension in allowed_extensions:
@@ -136,6 +139,20 @@ class ImageWindow():
 		#also note which images have already been moved
 		self.moved_images = np.zeros(len(self.images_fnames))
 
+		#image buffer list
+		self.img_buffer = []
+		#the desired buffer length
+		self.img_buffer_target_length = 10
+
+		#parameter to indicate stopping loading the image buffer
+		self.stop_buffer_loading = False
+
+		#start the image buffer loading thread
+		thread = threading.Thread(target = self.fillImageBuffer, args = ())
+		thread.daemon = True
+		thread.start()
+
+
 		self.root.after(1, self.nextImage)
 		self.root.mainloop()
 
@@ -151,8 +168,38 @@ class ImageWindow():
 		ratio = min(self.w/imgwidth, self.h/imgheight)
 		#resize it
 		img = img.resize((int(imgwidth * ratio), int(imgheight * ratio)))
-		#covert it to a Tkinter image object
+
+		return img
+
+	def fillImageBuffer(self):
+		"""
+		Fill an image buffer and show the first image from the buffer
+		"""
+
+		while not self.stop_buffer_loading:
+			for i in range(self.img_buffer_target_length - len(self.img_buffer)):
+				it = self.image_iterator + len(self.img_buffer) + 1
+				if it <= len(self.images_fnames) - 1:
+					fname = self.images_fnames[it]
+					self.img_buffer.append(self.loadImage(fname))
+				else:
+					self.stop_buffer_loading = True
+
+	def getImage(self):
+		"""
+		Get an image from the image buffer
+		"""
+
+		while len(self.img_buffer) == 0 and not self.stop_buffer_loading:
+			time.sleep(0.05)
+
+		img = self.img_buffer[0]
+
+		#remove first from buffer
+		del self.img_buffer[0]
+
 		return ImageTk.PhotoImage(img)
+
 
 	def nextImage(self):
 		"""
@@ -167,7 +214,7 @@ class ImageWindow():
 			self.h = self.root.winfo_height()
 
 		#load image
-		image = self.loadImage(self.images_fnames[self.image_iterator])
+		image = self.getImage()
 
 		#display image
 		self.panel1.configure(image = image)
@@ -203,6 +250,7 @@ class ImageWindow():
 			self.image_iterator += 1
 
 		if self.image_iterator > len(self.images_fnames) - 1:
+			self.stop_buffer_loading = True
 			sys.exit('Final image reached, ending program...')
 
 		#loop
