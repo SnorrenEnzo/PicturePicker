@@ -143,6 +143,7 @@ class ImageWindow():
 
 		#image buffer list
 		self.img_buffer = []
+		self.img_buffer_fnames = []
 		#the desired buffer length
 		self.img_buffer_target_length = 10
 
@@ -184,6 +185,7 @@ class ImageWindow():
 				if it <= len(self.images_fnames) - 1:
 					fname = self.images_fnames[it]
 					self.img_buffer.append(self.loadImage(fname))
+					self.img_buffer_fnames.append(fname)
 				else:
 					self.stop_buffer_loading = True
 
@@ -204,6 +206,12 @@ class ImageWindow():
 
 		return ImageTk.PhotoImage(img)
 
+	def popBuffer(self):
+		"""
+		Remove the first item from the image buffer
+		"""
+		del self.img_buffer[0]
+		del self.img_buffer_fnames[0]
 
 	def nextImage(self):
 		"""
@@ -225,7 +233,7 @@ class ImageWindow():
 		self.panel1.configure(image = image)
 		self.display = image
 
-		display_fname = self.images_fnames[self.image_iterator][::-1].split('/', 1)[0][::-1]
+		display_fname = self.img_buffer_fnames[0][::-1].split('/', 1)[0][::-1]
 
 		#ask for input
 		move_answer = input(f'{display_fname} [{self.image_iterator+1}/{len(self.images_fnames) + 1}/{self.n_images_moved}] Move the image? (y/n/exit) ')
@@ -235,14 +243,14 @@ class ImageWindow():
 
 		#move file if desired
 		if move_answer.lower() == 'y':
-			shutil.move(self.images_fnames[self.image_iterator], self.moveto_path)
+			shutil.move(self.img_buffer_fnames[0], self.moveto_path)
 			self.n_images_moved += 1
 			self.moved_images[self.image_iterator] = 1
 
 			self.image_iterator += 1
 
 			#remove first from buffer
-			del self.img_buffer[0]
+			self.popBuffer()
 		elif move_answer.lower() == 'exit':
 			sys.exit('Exiting...')
 		elif move_answer == '\x1b[D':
@@ -261,8 +269,7 @@ class ImageWindow():
 			self.image_iterator += 1
 
 			#remove first from buffer
-			del self.img_buffer[0]
-
+			self.popBuffer()
 		if self.image_iterator > len(self.images_fnames) - 1:
 			self.stop_buffer_loading = True
 			sys.exit('Final image reached, ending program...')
