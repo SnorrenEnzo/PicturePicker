@@ -133,6 +133,8 @@ class ImageWindow():
 		except ValueError:
 			sys.exit('Aborting: please give an integer input.')
 
+		print(self.image_iterator)
+
 
 		#count the number of images moved
 		self.n_images_moved = 0
@@ -181,13 +183,20 @@ class ImageWindow():
 
 		while not self.stop_buffer_loading:
 			for i in range(self.img_buffer_target_length - len(self.img_buffer)):
-				it = self.image_iterator + len(self.img_buffer) + 1
+				it = self.image_iterator + len(self.img_buffer)
 				if it <= len(self.images_fnames) - 1:
 					fname = self.images_fnames[it]
 					self.img_buffer.append(self.loadImage(fname))
 					self.img_buffer_fnames.append(fname)
 				else:
 					self.stop_buffer_loading = True
+
+	def prependBuffer(self, fname):
+		"""
+		Prepend an image and filename to the buffers
+		"""
+		self.img_buffer.insert(0, self.loadImage(fname))
+		self.img_buffer_fnames.insert(0, fname)
 
 	def getImage(self, rotate = None):
 		"""
@@ -259,6 +268,8 @@ class ImageWindow():
 			#move one back if that image wasn't moved already
 			if not self.moved_images[self.image_iterator - 1]:
 				self.image_iterator -= 1
+				#prepend this filename to the image buffer list
+				self.prependBuffer(self.images_fnames[self.image_iterator])
 			else:
 				print('Image already moved.')
 		elif move_answer.lower() in ['l', 'r', 'h']:
