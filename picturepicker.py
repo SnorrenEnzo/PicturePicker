@@ -11,6 +11,7 @@ import time
 
 import tkinter as tk
 from PIL import Image, ImageTk
+from PIL import UnidentifiedImageError
 from tkinter.ttk import Frame, Button, Style
 
 def makeFileList(mypath, extension = None):
@@ -98,6 +99,7 @@ class ImageWindow():
 		x = 0
 		y = 0
 
+		self.image_not_found_path = '/home/jelle/Documents/Python/PicturePicker/image-not-found.png'
 
 		#set up the frame
 		self.root = tk.Tk()
@@ -161,13 +163,20 @@ class ImageWindow():
 		Load a new image and put it in the frame
 		"""
 		# load the image
-		img = Image.open(fname)
+		try:
+			img = Image.open(fname)
+		except UnidentifiedImageError:
+			print('Image loading failed')
+			img = Image.open(self.image_not_found_path)
 		#determine size
 		imgwidth, imgheight = img.size
 		#determine resize ratio
 		ratio = min(self.w/imgwidth, self.h/imgheight)
 		#resize it
-		img = img.resize((int(imgwidth * ratio), int(imgheight * ratio)))
+		try:
+			img = img.resize((int(imgwidth * ratio), int(imgheight * ratio)))
+		except ValueError:
+			print('Error encountered: box cannot exceed original size')
 
 		return img
 
