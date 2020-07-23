@@ -50,7 +50,10 @@ def checkFolders(folders):
 			print(f'Directory {folder} does not exist; creating it now...')
 			os.makedirs(folder)
 
-def filterFileExtensions(fname_list):
+def get_file_extension(filename):
+	return filename[::-1].split('.', 1)[0][::-1]
+
+def filterFileExtensions(fname_list, allowed_extensions):
 	"""
 	Filter a list of filenames to only include:
 		.bmp
@@ -59,16 +62,8 @@ def filterFileExtensions(fname_list):
 		.jpeg
 		.gif
 		.png
+		.CR2 (RAW)
 	"""
-
-	allowed_extensions = [
-		'bmp',
-		'jpg',
-		'JPG',
-		'jpeg',
-		'gif',
-		'png'
-		]
 
 	filtered_fnames = []
 
@@ -76,7 +71,7 @@ def filterFileExtensions(fname_list):
 
 	for fname in fname_list:
 		#extract the file extension without the dot
-		extension = fname[::-1].split('.', 1)[0][::-1]
+		extension = get_file_extension(fname)#fname[::-1].split('.', 1)[0][::-1]
 
 		if extension in allowed_extensions:
 			filtered_fnames.append(fname)
@@ -213,6 +208,12 @@ class ImageWindow():
 		elif rotate == 'r':
 			img = img.rotate(-90)
 
+		#check if the image is in a raw format. If so, convert to RGB
+		imgextension = get_file_extension(self.img_buffer_fnames[0])#[::-1].split('.')[0][::-1]
+
+		if imgextension in raw_formats:
+			img = img.convert('RGB')
+
 		return ImageTk.PhotoImage(img)
 
 	def popBuffer(self):
@@ -288,6 +289,23 @@ class ImageWindow():
 		#loop
 		self.root.after(1, self.nextImage)
 
+### allowed file extensions and RAW image formats
+raw_formats = [
+	'CR2',
+	'TIF',
+	'tif'
+	]
+
+allowed_extensions = [
+	'bmp',
+	'jpg',
+	'JPG',
+	'jpeg',
+	'gif',
+	'png'
+	]
+allowed_extensions.extend(raw_formats)
+
 def main(devmode):
 	"""
 	This script allows one to easily sort images manually. The path of a folder
@@ -316,7 +334,7 @@ def main(devmode):
 	images_fnames = makeFileList(images_path)
 
 	#filter the file extensions
-	images_fnames = filterFileExtensions(images_fnames)
+	images_fnames = filterFileExtensions(images_fnames, allowed_extensions)
 
 	#open the image window
 	img_window = ImageWindow(images_fnames, moveto_path)
