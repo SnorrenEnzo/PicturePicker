@@ -99,6 +99,8 @@ class ImageWindow():
 		x = 0
 		y = 0
 
+		self.temp_img_name = 'tmp.jpg'
+
 		self.image_not_found_path = '/home/jelle/Documents/Python/PicturePicker/image-not-found.png'
 
 		#set up the frame
@@ -162,21 +164,42 @@ class ImageWindow():
 		"""
 		Load a new image and put it in the frame
 		"""
+		def get_new_size(img):
+			#determine size
+			imgwidth, imgheight = img.size
+			#determine resize ratio
+			ratio = min(self.w/imgwidth, self.h/imgheight)
+			#resize it
+			new_imgsize = (int(imgwidth * ratio), int(imgheight * ratio))
+
+			return new_imgsize
+
 		# load the image
 		try:
 			img = Image.open(fname)
 		except UnidentifiedImageError:
 			print('Image loading failed')
+			#load backup image
 			img = Image.open(self.image_not_found_path)
-		#determine size
-		imgwidth, imgheight = img.size
-		#determine resize ratio
-		ratio = min(self.w/imgwidth, self.h/imgheight)
-		#resize it
+
+		new_imgsize = get_new_size(img)
+
 		try:
-			img = img.resize((int(imgwidth * ratio), int(imgheight * ratio)))
+			img = img.resize(new_imgsize, Image.ANTIALIAS)
 		except ValueError:
 			print('Error encountered: box cannot exceed original size')
+			#first save to temp file
+			img.save(self.temp_img_name, 'jpeg')
+
+			#load this temp image
+			img = Image.open(self.temp_img_name)
+
+			#remove it from the disk
+			os.remove(self.temp_img_name)
+
+			#get new size and resize
+			new_imgsize = get_new_size(img)
+			img = img.resize(new_imgsize, Image.ANTIALIAS)
 
 		return img
 
